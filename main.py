@@ -19,7 +19,6 @@ class MainWindow(QMainWindow):
 
         self.setWindowTitle("Audio Editor")
         self.setFixedSize(QSize(1280, 640))
-
         self.general_layout = QVBoxLayout()
         self.top_layout = QHBoxLayout()
         self.bottom_layout = QVBoxLayout()
