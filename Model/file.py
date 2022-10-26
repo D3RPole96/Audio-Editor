@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 from PyQt5.QtCore import QUrl
 from PyQt5.QtMultimedia import QMediaContent
 
@@ -9,6 +10,12 @@ class File:
         self.content = QMediaContent(url)
 
     content = ''
+=======
+class File:
+    def __init__(self):
+        pass
+
+>>>>>>> 37f97a83c15666840205e0cc9969a5dce433ba5a
     path = ""
     volume = 0
 
