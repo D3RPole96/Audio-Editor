@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 from PyQt5.QtMultimedia import QMediaPlayer
 
 
@@ -18,8 +17,3 @@ class Player:
 
     def stop(self):
         self.player.stop()
-=======
-class Player:
-    def __init__(self):
-        pass
->>>>>>> 37f97a83c15666840205e0cc9969a5dce433ba5a
