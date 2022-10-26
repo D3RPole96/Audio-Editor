@@ -3,12 +3,13 @@ import sys
 import ffmpeg
 from PyQt5.QtCore import QSize, Qt
 from PyQt5.QtWidgets import QMainWindow, QApplication, QPushButton, QHBoxLayout, QWidget, QVBoxLayout, QSlider, \
-    QTableWidget
+    QTableWidget, QStyleOptionSlider, QStyle
+from PyQt5.uic.properties import QtWidgets, QtCore, QtGui
+
+from Screens.menubar import create_menubar
 
 
 class MainWindow(QMainWindow):
-    from Screens.menubar import create_menubar
-
     def __init__(self):
         super().__init__()
 
@@ -21,11 +22,11 @@ class MainWindow(QMainWindow):
         self.general_layout.addLayout(self.top_layout)
         self.general_layout.addLayout(self.bottom_layout)
 
-        self.random_button = QPushButton()
-        self.random_button_layout = QHBoxLayout()
-        self.random_button_layout.addWidget(self.random_button)
-        self.top_layout.addLayout(self.random_button_layout)
-        self.random_button_layout.setAlignment(Qt.AlignmentFlag.AlignBottom)
+        #self.random_button = QPushButton()
+        #self.random_button_layout = QHBoxLayout()
+        #self.random_button_layout.addWidget(self.random_button)
+        #self.top_layout.addLayout(self.random_button_layout)
+        #self.random_button_layout.setAlignment(Qt.AlignmentFlag.AlignBottom)
 
         self.set_top_layout()
         self.set_bottom_layout()
@@ -53,13 +54,14 @@ class MainWindow(QMainWindow):
 
         self.left_top_layout.addLayout(self.fragments_table_layout)
 
-        self.fragments_table_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.fragments_table_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
 
     def set_bottom_layout(self):
         self.upper_bottom_layout = QHBoxLayout()
         self.lower_bottom_layout = QHBoxLayout()
         self._set_main_buttons()
         self._set_global_volume_slider()
+        self._set_progress_slider()
         self.upper_bottom_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
         self.bottom_layout.addLayout(self.upper_bottom_layout)
         self.bottom_layout.addLayout(self.lower_bottom_layout)
@@ -94,6 +96,34 @@ class MainWindow(QMainWindow):
         self.upper_bottom_layout.addLayout(self.global_volume_slider_layout)
 
         self.global_volume_slider_layout.setAlignment(Qt.AlignmentFlag.AlignRight)
+
+    def _set_progress_slider(self):
+        self.progress_slider = QJumpSlider(Qt.Horizontal)
+        self.progress_slider.setFixedSize(1100, 200)
+
+        self.progress_slider.setMinimum(0)
+        self.progress_slider.setMaximum(1000)
+
+        self.progress_slider.setSingleStep(1)
+        self.progress_slider.setValue(0)
+
+        self.progress_slider_layout = QHBoxLayout()
+        self.progress_slider_layout.addWidget(self.progress_slider)
+
+        self.lower_bottom_layout.addLayout(self.progress_slider_layout)
+
+        self.progress_slider_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
+
+
+class QJumpSlider(QSlider):
+    def __init__(self, parent=None):
+        super(QJumpSlider, self).__init__(parent)
+
+    def mousePressEvent(self, event):
+        self.setValue(QStyle.sliderValueFromPosition(self.minimum(), self.maximum(), event.x(), self.width()))
+
+    def mouseMoveEvent(self, event):
+        self.setValue(QStyle.sliderValueFromPosition(self.minimum(), self.maximum(), event.x(), self.width()))
 
 
 if __name__ == "__main__":
