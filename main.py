@@ -7,11 +7,15 @@ from PyQt5.QtWidgets import QMainWindow, QApplication, QPushButton, QHBoxLayout,
 from PyQt5.uic.properties import QtWidgets, QtCore, QtGui
 
 from Screens.menubar import create_menubar
-
+from Model.project import Project
 
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
+
+        self.project = Project()
+        self.project.import_demo_file()
+
 
         self.setWindowTitle("Audio Editor")
         self.setFixedSize(QSize(1280, 640))
@@ -71,10 +75,13 @@ class MainWindow(QMainWindow):
     def _set_main_buttons(self):
         self.play_button = QPushButton('Play')
         self.play_button.setFixedSize(100, 100)
+        self.play_button.clicked.connect(lambda: self.project.player.play())
         self.pause_button = QPushButton('Pause')
         self.pause_button.setFixedSize(100, 100)
+        self.pause_button.clicked.connect(lambda: self.project.player.pause())
         self.stop_button = QPushButton('Stop')
         self.stop_button.setFixedSize(100, 100)
+        self.stop_button.clicked.connect(lambda: self.project.player.stop())
 
         self.main_buttons_layout = QHBoxLayout()
         self.main_buttons_layout.addWidget(self.pause_button)
