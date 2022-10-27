@@ -1,19 +1,24 @@
-from PyQt5.QtMultimedia import QMediaPlayer
-
+from PyQt5.QtCore import QUrl
+from PyQt5.QtMultimedia import QMediaPlayer, QMediaContent
 
 
 class Player:
+    player = QMediaPlayer()
+
     def __init__(self):
-        self.player = QMediaPlayer()
+        pass
 
     def set_content(self, content):
-        self.player.setMedia(content)
+        Player.player.setMedia(QMediaContent(QUrl.fromLocalFile(content)))
 
     def play(self):
-        self.player.play()
+        Player.player.play()
 
     def pause(self):
-        self.player.pause()
+        Player.player.pause()
 
     def stop(self):
-        self.player.stop()
+        Player.player.stop()
+
+    def set_volume(self, volume_level):
+        Player.player.setVolume(volume_level)

@@ -1,14 +1,13 @@
 from Model.player import Player
 from Model.file import File
+from PyQt5 import QtCore
 
 class Project:
     def __init__(self):
-        pass
-
-    files = []
-    master_volume = 0
-    player = Player()
-    selected = 0
+        self.files = []
+        self.master_volume = 0
+        self.player = Player()
+        self.selected = 0
 
     def reverse(self, fragment):
         pass
@@ -29,7 +28,7 @@ class Project:
         pass
 
     def import_demo_file(self):
-        file = File('met.wav')
+        file = File(QtCore.QDir.current().absoluteFilePath('met.wav'))
         self.files.append(file)
         self.player.set_content(file.content)
 

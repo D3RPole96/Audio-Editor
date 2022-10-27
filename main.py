@@ -9,13 +9,13 @@ from PyQt5.uic.properties import QtWidgets, QtCore, QtGui
 from Screens.menubar import create_menubar
 from Model.project import Project
 
+
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
 
         self.project = Project()
         self.project.import_demo_file()
-
 
         self.setWindowTitle("Audio Editor")
         self.setFixedSize(QSize(1280, 640))
@@ -25,12 +25,6 @@ class MainWindow(QMainWindow):
 
         self.general_layout.addLayout(self.top_layout)
         self.general_layout.addLayout(self.bottom_layout)
-
-        #self.random_button = QPushButton()
-        #self.random_button_layout = QHBoxLayout()
-        #self.random_button_layout.addWidget(self.random_button)
-        #self.top_layout.addLayout(self.random_button_layout)
-        #self.random_button_layout.setAlignment(Qt.AlignmentFlag.AlignBottom)
 
         self.set_top_layout()
         self.set_bottom_layout()
@@ -47,7 +41,6 @@ class MainWindow(QMainWindow):
 
         self.top_layout.addLayout(self.left_top_layout)
         self.top_layout.addLayout(self.right_top_layout)
-
 
     def _set_fragments_table(self):
         self.fragments_table = QTableWidget()
@@ -69,7 +62,6 @@ class MainWindow(QMainWindow):
         self.upper_bottom_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
         self.bottom_layout.addLayout(self.upper_bottom_layout)
         self.bottom_layout.addLayout(self.lower_bottom_layout)
-
 
     def _set_main_buttons(self):
         self.play_button = QPushButton('Play')
@@ -93,9 +85,15 @@ class MainWindow(QMainWindow):
                                               | Qt.AlignmentFlag.AlignLeft)
 
     def _set_global_volume_slider(self):
-        self.global_volume_slider = QSlider(Qt.Horizontal)
+        self.global_volume_slider = QJumpSlider(Qt.Horizontal)
         self.global_volume_slider.setFixedSize(250, 25)
+
+        self.global_volume_slider.setMinimum(0)
+        self.global_volume_slider.setMaximum(100)
+        self.global_volume_slider.setSingleStep(1)
         self.global_volume_slider.setValue(100)
+
+        self.global_volume_slider.valueChanged.connect(self.project.player.set_volume)
 
         self.global_volume_slider_layout = QHBoxLayout()
         self.global_volume_slider_layout.addWidget(self.global_volume_slider)
@@ -127,10 +125,16 @@ class QJumpSlider(QSlider):
         super(QJumpSlider, self).__init__(parent)
 
     def mousePressEvent(self, event):
-        self.setValue(QStyle.sliderValueFromPosition(self.minimum(), self.maximum(), event.x(), self.width()))
+        self.setValue(QStyle.sliderValueFromPosition(self.minimum(), self.maximum(),
+                                                     event.x() if self.orientation() == Qt.Horizontal else -event.y(),
+                                                     self.width() if self.orientation() == Qt.Horizontal
+                                                     else self.height()))
 
     def mouseMoveEvent(self, event):
-        self.setValue(QStyle.sliderValueFromPosition(self.minimum(), self.maximum(), event.x(), self.width()))
+        self.setValue(QStyle.sliderValueFromPosition(self.minimum(), self.maximum(),
+                                                     event.x() if self.orientation() == Qt.Horizontal else -event.y(),
+                                                     self.width() if self.orientation() == Qt.Horizontal
+                                                     else self.height()))
 
 
 if __name__ == "__main__":

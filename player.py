@@ -21,4 +21,4 @@ class Player:
         pass
 
     def change_track(self, path):
-        path
+        pass

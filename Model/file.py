@@ -1,11 +1,11 @@
 from PyQt5.QtCore import QUrl
 from PyQt5.QtMultimedia import QMediaContent
 
+
 class File:
-    def __init__(self):
-        pass
-    path = ""
-    volume = 0
+    def __init__(self, file):
+        self.content = file
+        volume = 0
 
     def reverse(self):
         pass
