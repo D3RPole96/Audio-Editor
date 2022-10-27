@@ -22,3 +22,12 @@ class Player:
 
     def set_volume(self, volume_level):
         Player.player.setVolume(volume_level)
+
+    def set_position(self, value):
+        Player.player.setPosition(value)
+
+    def get_duration(self):
+        return Player.player.duration()
+
+    def get_progress(self):
+        return Player.player.position() / Player.player.duration() if Player.player.duration() != 0 else 0

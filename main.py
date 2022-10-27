@@ -8,6 +8,7 @@ from PyQt5.uic.properties import QtWidgets, QtCore, QtGui
 
 from Screens.menubar import create_menubar
 from Model.project import Project
+import threading
 
 
 class MainWindow(QMainWindow):
@@ -33,6 +34,8 @@ class MainWindow(QMainWindow):
         container.setLayout(self.general_layout)
 
         self.setCentralWidget(container)
+
+        self.check_progress_bar()
 
     def set_top_layout(self):
         self.left_top_layout = QVBoxLayout()
@@ -112,6 +115,9 @@ class MainWindow(QMainWindow):
         self.progress_slider.setSingleStep(1)
         self.progress_slider.setValue(0)
 
+        run_on_click_lambda = lambda n: self.project.player.set_position(self.project.player.get_duration() * n / 1000)
+        self.progress_slider.set_run_on_click_function(run_on_click_lambda)
+
         self.progress_slider_layout = QHBoxLayout()
         self.progress_slider_layout.addWidget(self.progress_slider)
 
@@ -119,22 +125,33 @@ class MainWindow(QMainWindow):
 
         self.progress_slider_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
+    def check_progress_bar(self):
+        threading.Timer(0.001, self.check_progress_bar).start()
+        self.progress_slider.setValue(self.project.player.get_progress() * self.progress_slider.maximum())
+
 
 class QJumpSlider(QSlider):
     def __init__(self, parent=None):
         super(QJumpSlider, self).__init__(parent)
+        self.run_on_click = None
 
     def mousePressEvent(self, event):
+        self.mouse_event(event)
+
+    def mouseMoveEvent(self, event):
+        self.mouse_event(event)
+
+    def mouse_event(self, event):
         self.setValue(QStyle.sliderValueFromPosition(self.minimum(), self.maximum(),
                                                      event.x() if self.orientation() == Qt.Horizontal else -event.y(),
                                                      self.width() if self.orientation() == Qt.Horizontal
                                                      else self.height()))
 
-    def mouseMoveEvent(self, event):
-        self.setValue(QStyle.sliderValueFromPosition(self.minimum(), self.maximum(),
-                                                     event.x() if self.orientation() == Qt.Horizontal else -event.y(),
-                                                     self.width() if self.orientation() == Qt.Horizontal
-                                                     else self.height()))
+        if self.run_on_click is not None:
+            self.run_on_click(self.value())
+
+    def set_run_on_click_function(self, function):
+        self.run_on_click = function
 
 
 if __name__ == "__main__":
