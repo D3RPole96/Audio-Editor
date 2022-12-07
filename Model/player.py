@@ -1,6 +1,6 @@
 from PyQt5.QtCore import QUrl
 from PyQt5.QtMultimedia import QMediaPlayer, QMediaContent, QMediaPlaylist
-
+import ffmpeg
 
 class Player:
     def __init__(self):

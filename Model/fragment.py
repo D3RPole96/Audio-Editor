@@ -6,19 +6,8 @@ class Fragment:
     last_id = 0
 
     def __init__(self, content):
+        self.length = 0
         self.id = Fragment.last_id
         Fragment.last_id += 1
         self.content = content
         volume = 0
-
-    def reverse(self):
-        pass
-
-    def split(self, time_point):
-        pass
-
-    def glue_to(self, another_content):
-        pass
-
-    def change_speed(self, ratio):
-        pass

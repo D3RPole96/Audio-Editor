@@ -1,3 +1,5 @@
+from PyQt5.QtWidgets import QFileDialog
+
 from Model.project import Project
 
 
@@ -46,21 +48,3 @@ class Session:
 
     def player_set_position(self, position):
         self.project.player.set_position(position)
-
-    def editor_select_fragment(self, fragment_index):
-        pass
-
-    def editor_delete_fragment(self, fragment_index):
-        pass
-
-    def editor_reverse_fragment(self, fragment_index):
-        pass
-
-    def editor_change_speed(self, fragment_index, coefficient):
-        pass
-
-    def editor_split_fragment(self, fragment_index, position_to_split):
-        pass
-
-    def editor_glue(self, fragment1, fragment2):
-        pass
