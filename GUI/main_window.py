@@ -245,7 +245,7 @@ class MainWindow(QMainWindow):
 
     def menu_import_file(self):
         path = QFileDialog.getOpenFileUrl(self, caption="Импортировать")
-        s = path[0].path()
+        s = path[0].path()[1:]
         if s != '':
             self.session.project.import_file(s)
         self.refresh()

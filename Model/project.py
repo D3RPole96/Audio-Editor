@@ -19,7 +19,6 @@ class Project:
         self.undone_stack = []
         self.have_unsaved_changes = True
 
-
     def reverse(self, fragment_index):
         cmd = Reverse(self, fragment_index)
         cmd.do()
@@ -45,12 +44,7 @@ class Project:
         # self.player.add_content(file.content)
 
     def import_demo_file(self):
-        path = Fragment(QtCore.QDir.current().absoluteFilePath('DemoFiles/met.wav'))
-        self.fragments.append(path)
-        self.player.add_content(path.content)
-        path = Fragment(QtCore.QDir.current().absoluteFilePath('DemoFiles/met2.mp3'))
-        self.fragments.append(path)
-        self.player.add_content(path.content)
+        pass
 
     def export_as_project(self, path):
         pass
@@ -73,13 +67,12 @@ class Project:
         proj.path = path
         proj.have_unsaved_changes = False
         for line in pack_array:
-            proj.fragments.append(Fragment(line[1:]))
+            arguments = line.split()
+            proj.fragments.append(Fragment(arguments[0], bool(arguments[1]), float(arguments[2])))
         return proj
-
 
     def pack(self):
         answer = []
         for fragment in self.fragments:
-            answer.append(fragment.content)
+            answer.append(f'{fragment.content} {fragment.is_reversed} {fragment.speed}')
         return answer
-
