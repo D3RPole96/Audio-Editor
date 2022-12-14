@@ -1,3 +1,5 @@
+from math import floor
+
 from PyQt5.QtCore import QUrl
 from PyQt5.QtMultimedia import QMediaPlayer, QMediaContent, QMediaPlaylist
 import ffmpeg
@@ -9,7 +11,9 @@ class Player:
         self.player.setMedia(QMediaContent(self.content))
 
     def add_content(self, content):
+        self.content = QMediaPlaylist()
         self.content.addMedia(QMediaContent(QUrl.fromLocalFile(content)))
+        self.player.setMedia(QMediaContent(self.content))
 
     def play(self):
         self.player.play()
@@ -34,3 +38,7 @@ class Player:
             return self.player.position() / self.player.duration()
         else:
             return 0
+
+    @staticmethod
+    def duration_to_str(duration):
+        return f'{floor(duration / 60)}:{"0" if floor(duration % 60) < 10 else ""}{floor(duration % 60)}'

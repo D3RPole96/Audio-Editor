@@ -1,6 +1,7 @@
 from PyQt5.QtCore import QSize, Qt, QUrl
+from PyQt5.QtGui import QFont
 from PyQt5.QtWidgets import QPushButton, QHBoxLayout, QWidget, QVBoxLayout, QTableWidget, QMainWindow, QWidgetAction, \
-    QFileDialog, QTableWidgetItem, QInputDialog
+    QFileDialog, QTableWidgetItem, QInputDialog, QLabel
 from Model import ffmeg_editor
 # from PyQt6.QtWidgets import
 import threading
@@ -16,6 +17,14 @@ class MainWindow(QMainWindow):
     def __init__(self, session):
         super().__init__()
         self.session = session
+
+        self.audio_name = QLabel()
+        self.audio_name.setText('-')
+        self.audio_name.setFont(QFont('Arial', 24))
+        self.duration_text = QLabel()
+        self.duration_text.setText('0:00 / 0:00')
+        self.duration_text.setFont(QFont('Arial', 24))
+
         self.refresh()
         self.create_menubar()
 
@@ -71,7 +80,7 @@ class MainWindow(QMainWindow):
         name = QUrl(self.session.project.fragments[i].content).fileName()
         self.table.setItem(i, 0, QTableWidgetItem(name))
         length = ffmeg_editor.get_length(self.session.project.fragments[i].content)
-        self.table.setItem(1, 1, QTableWidgetItem(length))
+        self.table.setItem(i, 1, QTableWidgetItem(length))
         tools_panel = QHBoxLayout()
 
         delete_button = QPushButton('D')
@@ -89,6 +98,9 @@ class MainWindow(QMainWindow):
         split_button = QPushButton('|')
         split_button.clicked.connect(lambda: self.session.player_play())
         tools_panel.addWidget(split_button)
+        play_button = QPushButton('P')
+        play_button.clicked.connect(lambda: self.editor_add_content(i))
+        tools_panel.addWidget(play_button)
 
         tools_panel_widget = QWidget()
         tools_panel_widget.setLayout(tools_panel)
@@ -98,6 +110,7 @@ class MainWindow(QMainWindow):
         self.upper_bottom_layout = QHBoxLayout()
         self.lower_bottom_layout = QHBoxLayout()
         self._set_main_buttons()
+        self.__set_main_text()
         self._set_global_volume_slider()
         self._set_progress_slider()
         self.upper_bottom_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
@@ -124,6 +137,17 @@ class MainWindow(QMainWindow):
 
         self.main_buttons_layout.setAlignment(Qt.AlignmentFlag.AlignTop
                                               | Qt.AlignmentFlag.AlignLeft)
+
+    def __set_main_text(self):
+        self.main_text_layout = QVBoxLayout()
+        self.main_text_layout.addWidget(self.audio_name)
+        self.main_text_layout.addWidget(self.duration_text)
+
+        self.empty_label = QLabel()
+        self.empty_label.setFixedWidth(100)
+
+        self.upper_bottom_layout.addWidget(self.empty_label)
+        self.upper_bottom_layout.addLayout(self.main_text_layout)
 
     def _set_global_volume_slider(self):
         self.global_volume_slider = QJumpSlider(Qt.Horizontal)
@@ -267,6 +291,13 @@ class MainWindow(QMainWindow):
         if ok:
             self.session.project.change_speed(fragment_index, float(ratio))
             self.refresh()
+
+    def editor_add_content(self, fragment_index):
+        self.session.project.add_content(fragment_index)
+        self.audio_name.setText(QUrl(self.session.project.fragments[fragment_index].content).fileName())
+        a=f'0:00 / {self.session.project.player.get_duration()}'
+        self.duration_text.setText(f'0:00 / {self.session.project.player.get_duration()}')
+        self.refresh()
 
     def menu_new(self):
         name, ok = QInputDialog.getText(self, "Новый проект", "Введите название")

@@ -30,7 +30,6 @@ def reverse(path, output_path):
 
 
 def change_speed(path, output_path, speed_ratio):
-    a = 5
     (
         ffmpeg
         .input(path)

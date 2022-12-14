@@ -28,16 +28,18 @@ def change_speed(parent, fragment_index, speed_ratio):
     if fragment.speed == 1:
         if speed_ratio != 1:
             new_path = path[:-4] + '-s' + str(speed_ratio) + path[-4:]
+            ffmeg_editor.change_speed(path, new_path, speed_ratio)
         else:
             new_path = path
     else:
         if speed_ratio * fragment.speed != 1:
+            original_path = re.sub(r'\d+\.\d+s-', '', path[::-1], 1)[::-1]
             new_path = re.sub(r'\d+\.\d+s-', f'-s{speed_ratio * fragment.speed}'[::-1], path[::-1], 1)[::-1]
+            ffmeg_editor.change_speed(original_path, new_path, speed_ratio * fragment.speed)
+            os.remove(path)
         else:
             new_path = re.sub(r'\d+\.\d+s-', '', path[::-1], 1)[::-1]
-
-    ffmeg_editor.change_speed(path, new_path, speed_ratio)
-    os.remove(path)
+            os.remove(path)
 
     new_fragment = Fragment(new_path)
     new_fragment.speed = fragment.speed * speed_ratio

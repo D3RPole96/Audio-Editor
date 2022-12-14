@@ -32,6 +32,9 @@ class Project:
         cmd.do()
         self.done_stack.append(cmd)
 
+    def add_content(self, fragment_index):
+        self.player.add_content(self.fragments[fragment_index].content)
+
     def split(self, fragment, time_point):
         pass
 
