@@ -9,11 +9,13 @@ class Player:
         self.player = QMediaPlayer()
         self.content = QMediaPlaylist()
         self.player.setMedia(QMediaContent(self.content))
+        self.playing_fragment = None
 
     def add_content(self, content):
         self.content = QMediaPlaylist()
         self.content.addMedia(QMediaContent(QUrl.fromLocalFile(content)))
         self.player.setMedia(QMediaContent(self.content))
+        self.playing_fragment = content
 
     def play(self):
         self.player.play()

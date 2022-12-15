@@ -10,6 +10,7 @@ import threading
 # from GUI.menubar import create_menubar
 from GUI.jump_slider import QJumpSlider
 from Model.project import Project
+from Model.ffmeg_editor import get_duration, get_duration_with_percent
 
 
 
@@ -46,7 +47,7 @@ class MainWindow(QMainWindow):
         self.container.setLayout(self.general_layout)
 
         self.setCentralWidget(self.container)
-        self.check_progress_bar()
+        self.update_progress()
 
     def set_top_layout(self):
         self.left_top_layout = QVBoxLayout()
@@ -79,7 +80,7 @@ class MainWindow(QMainWindow):
         self.table.setRowHeight(i, 50)
         name = QUrl(self.session.project.fragments[i].content).fileName()
         self.table.setItem(i, 0, QTableWidgetItem(name))
-        length = ffmeg_editor.get_length(self.session.project.fragments[i].content)
+        length = ffmeg_editor.get_duration(self.session.project.fragments[i].content)
         self.table.setItem(i, 1, QTableWidgetItem(length))
         tools_panel = QHBoxLayout()
 
@@ -186,9 +187,18 @@ class MainWindow(QMainWindow):
 
         self.progress_slider_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
-    def check_progress_bar(self):
-        threading.Timer(0.001, self.check_progress_bar).start()
-        self.progress_slider.setValue(self.session.project.player.get_progress() * self.progress_slider.maximum())
+    def update_progress(self):
+        threading.Timer(0.001, self.update_progress).start()
+        progress = self.session.project.player.get_progress()
+
+        # Не убирай коммент, иначе компу смерть
+
+        #if self.session.project.player.playing_fragment is not None:
+        #    self.duration_text.setText(
+        #        self.duration_text.setText(f'{get_duration_with_percent(self.session.project.player.playing_fragment, progress)}'
+        #                                   f' / {get_duration(self.session.project.player.playing_fragment)}'))
+
+        self.progress_slider.setValue(progress * self.progress_slider.maximum())
 
     def create_menubar(self):
         menu_bar = self.menuBar()
@@ -278,8 +288,8 @@ class MainWindow(QMainWindow):
         path = QFileDialog.getSaveFileUrl(self, caption="Сохранить как", filter=(".wav"), )[0].path() + ".wav"
         ffmeg_editor.concat(self.session.project.fragments, path)
 
-    def editor_delete_fragment(self, fragment_number):
-        del self.session.project.fragments[fragment_number]
+    def editor_delete_fragment(self, fragment_index):
+        self.session.project.delete(fragment_index)
         self.refresh()
 
     def editor_reverse_fragment(self, fragment_index):
@@ -294,9 +304,8 @@ class MainWindow(QMainWindow):
 
     def editor_add_content(self, fragment_index):
         self.session.project.add_content(fragment_index)
-        self.audio_name.setText(QUrl(self.session.project.fragments[fragment_index].content).fileName())
-        a=f'0:00 / {self.session.project.player.get_duration()}'
-        self.duration_text.setText(f'0:00 / {self.session.project.player.get_duration()}')
+        self.audio_name.setText(QUrl(self.session.project.player.playing_fragment).fileName())
+        self.duration_text.setText(f'0:00 / {get_duration(self.session.project.player.playing_fragment)}')
         self.refresh()
 
     def menu_new(self):

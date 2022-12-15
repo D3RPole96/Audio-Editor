@@ -1,3 +1,5 @@
+import os
+
 from PyQt5.QtCore import QUrl
 
 from Model.commands.change_speed import ChangeSpeed
@@ -24,8 +26,10 @@ class Project:
         cmd.do()
         self.done_stack.append(cmd)
 
-    def delete(self, fragment):
-        pass
+    def delete(self, fragment_index):
+        if self.fragments[fragment_index].is_reversed or self.fragments[fragment_index].speed != 1:
+            os.remove(self.fragments[fragment_index].content)
+        del self.fragments[fragment_index]
 
     def change_speed(self, fragment_index, speed_ratio):
         cmd = ChangeSpeed(self, fragment_index, speed_ratio)
