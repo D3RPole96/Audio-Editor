@@ -12,5 +12,7 @@ class Fragment:
         self.content = content
         volume = 0
 
-        self.is_reversed = is_reversed
         self.speed = speed
+
+    def __eq__(self, other):
+        return self.id == other.id

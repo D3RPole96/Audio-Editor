@@ -10,11 +10,11 @@ from Model.fragment import Fragment
 def concat(fragments, output_path):
     files = []
     for fragment in fragments:
-        files.append(ffmpeg.input(fragment.content).audio)
+        files.append(ffmpeg.input(fragment).audio)
     (
         ffmpeg
         .concat(*files, a=1, v=0)
-        .output(output_path[1:])
+        .output(output_path)
         .run()
     )
 

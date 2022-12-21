@@ -8,29 +8,19 @@ from copy import deepcopy
 
 class Reverse(Command):
     def __init__(self, parent, fragment_index):
-        super().__init__()
-        self.fragment_index = fragment_index
-        self.parent = parent
+        super().__init__(parent, fragment_index)
 
-    def do(self):
-        reverse(self.parent, self.fragment_index)
+    def operate(self, *args):
+        fragment_path = self.old_file.content
+        path_after = str(fragment_path[:-4] + '-r' + fragment_path[-4:])
+        path_before = str(fragment_path[:-6] + fragment_path[-4:])
 
-    def undo(self):
-        reverse(self.parent, self.fragment_index)
-
-
-def reverse(parent, fragment_index):
-    fragment = parent.fragments[fragment_index]
-
-    path = deepcopy(fragment.content)
-    if not fragment.is_reversed:
-        new_path = path[:-4] + '-r' + path[-4:]
-        ffmeg_editor.reverse(path, new_path)
-    else:
-        new_path = path[::-1].replace('-r'[::-1], '', 1)[::-1]
-        os.remove(path)
-
-    new_fragment = Fragment(new_path)
-    new_fragment.is_reversed = not fragment.is_reversed
-    parent.fragments[fragment_index] = new_fragment
-    # parent.temp_files.append(new_path)
+        if path_after in [x.content for x in self.parent.project_files]:
+            return Fragment(path_after)
+        elif path_before in [x.content for x in self.parent.project_files]:
+            return Fragment(path_before)
+        else:
+            ffmeg_editor.reverse(fragment_path, path_after)
+            fragment = Fragment(path_after)
+            self.parent.project_files.append(fragment)
+            return fragment

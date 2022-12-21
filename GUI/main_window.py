@@ -60,7 +60,7 @@ class MainWindow(QMainWindow):
     def _set_fragments_table(self):
         self.table = QTableWidget()
         self.table.setFixedSize(550, 300)
-        rows_count = len(self.session.project.fragments)
+        rows_count = len(self.session.project.active_fragments)
         self.table.setColumnCount(3)  # Set three columns
         self.table.setRowCount(rows_count)  # and one row
         self.table.setColumnWidth(2, 180)
@@ -78,9 +78,9 @@ class MainWindow(QMainWindow):
 
     def add_table_row(self, i):
         self.table.setRowHeight(i, 50)
-        name = QUrl(self.session.project.fragments[i].content).fileName()
+        name = QUrl(self.session.project.active_fragments[i].content).fileName()
         self.table.setItem(i, 0, QTableWidgetItem(name))
-        length = ffmeg_editor.get_duration(self.session.project.fragments[i].content)
+        length = ffmeg_editor.get_duration(self.session.project.active_fragments[i].content)
         self.table.setItem(i, 1, QTableWidgetItem(length))
         tools_panel = QHBoxLayout()
 
@@ -94,7 +94,7 @@ class MainWindow(QMainWindow):
         speed_button.clicked.connect(lambda: self.editor_change_speed(i))
         tools_panel.addWidget(speed_button)
         glue_button = QPushButton('G')
-        glue_button.clicked.connect(lambda: self.session.player_play())
+        glue_button.clicked.connect(lambda: self.editor_concat(i))
         tools_panel.addWidget(glue_button)
         split_button = QPushButton('|')
         split_button.clicked.connect(lambda: self.session.player_play())
@@ -286,7 +286,7 @@ class MainWindow(QMainWindow):
 
     def menu_export_file(self):
         path = QFileDialog.getSaveFileUrl(self, caption="Сохранить как", filter=(".wav"), )[0].path() + ".wav"
-        ffmeg_editor.concat(self.session.project.fragments, path)
+        ffmeg_editor.concat(self.session.project.active_fragments, path)
 
     def editor_delete_fragment(self, fragment_index):
         self.session.project.delete(fragment_index)
@@ -306,6 +306,11 @@ class MainWindow(QMainWindow):
         self.session.project.add_content(fragment_index)
         self.audio_name.setText(QUrl(self.session.project.player.playing_fragment).fileName())
         self.duration_text.setText(f'0:00 / {get_duration(self.session.project.player.playing_fragment)}')
+        self.refresh()
+
+    def editor_concat(self, fragment_index):
+        next_fragment_index = fragment_index + 1
+        self.session.project.concat(fragment_index, next_fragment_index)
         self.refresh()
 
     def menu_new(self):
