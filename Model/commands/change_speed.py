@@ -16,7 +16,6 @@ class ChangeSpeed(Command):
         ratio = self.speed_ratio
         fragment_path = self.old_file.content
         suffix = get_last_suffix(fragment_path)
-        print(suffix)
         if suffix == '' or suffix[:2] != '-s':
             new_path = fragment_path[:-4] + '-s' + str(ratio) + fragment_path[-4:]
             ffmeg_editor.change_speed(fragment_path, new_path, ratio)
@@ -37,28 +36,3 @@ def get_last_suffix(line):
         if line[i] == '-':
             return answer[::-1]
     return ''
-
-
-def change_speed(parent, fragment_index, speed_ratio):
-    fragment = parent.active_fragments[fragment_index]
-
-    path = deepcopy(fragment.content)
-    if fragment.speed == 1:
-        if speed_ratio != 1:
-            new_path = path[:-4] + '-s' + str(speed_ratio) + path[-4:]
-            ffmeg_editor.change_speed(path, new_path, speed_ratio)
-        else:
-            new_path = path
-    else:
-        if speed_ratio * fragment.speed != 1:
-            original_path = re.sub(r'\d+\.\d+s-', '', path[::-1], 1)[::-1]
-            new_path = re.sub(r'\d+\.\d+s-', f'-s{speed_ratio * fragment.speed}'[::-1], path[::-1], 1)[::-1]
-            ffmeg_editor.change_speed(original_path, new_path, speed_ratio * fragment.speed)
-            os.remove(path)
-        else:
-            new_path = re.sub(r'\d+\.\d+s-', '', path[::-1], 1)[::-1]
-            os.remove(path)
-
-    new_fragment = Fragment(new_path)
-    new_fragment.speed = fragment.speed * speed_ratio
-    parent.active_fragments[fragment_index] = new_fragment

@@ -1,3 +1,4 @@
+from Model import ffmeg_editor
 from PyQt5.QtCore import QUrl
 from PyQt5.QtMultimedia import QMediaContent
 
@@ -5,14 +6,13 @@ from PyQt5.QtMultimedia import QMediaContent
 class Fragment:
     last_id = 0
 
-    def __init__(self, content, is_reversed=False, speed=1):
-        self.length = 0
+    def __init__(self, content):
         self.id = Fragment.last_id
         Fragment.last_id += 1
-        self.content = content
-        volume = 0
 
-        self.speed = speed
+        self.length = 0
+        self.content = content
+        self.duration = ffmeg_editor.get_duration(content)
 
     def __eq__(self, other):
         return self.id == other.id

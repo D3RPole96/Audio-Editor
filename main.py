@@ -8,7 +8,7 @@ from Model.session import Session
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     session = Session()
-    session.project.import_demo_file()
+    # session.project.import_demo_file()
 
     window = MainWindow(session)
     window.show()

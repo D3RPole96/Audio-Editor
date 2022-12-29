@@ -26,7 +26,6 @@ class Concat(Command):
                 break
             old2_file_name += self.old2_file.content[i]
         new_path = self.old_file.content[:-4] + '-' + old2_file_name[::-1]
-        print([self.old_file.content, self.old2_file.content], new_path)
         ffmeg_editor.concat([self.old_file.content, self.old2_file.content], new_path)
         fragment = Fragment(new_path)
         self.parent.project_files.append(fragment)

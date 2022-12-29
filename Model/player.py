@@ -6,16 +6,16 @@ import ffmpeg
 
 class Player:
     def __init__(self):
+        self.fragment_name = None
+        self.duration = None
         self.player = QMediaPlayer()
-        self.content = QMediaPlaylist()
-        self.player.setMedia(QMediaContent(self.content))
-        self.playing_fragment = None
+        self.content = QMediaContent()
 
-    def add_content(self, content):
-        self.content = QMediaPlaylist()
-        self.content.addMedia(QMediaContent(QUrl.fromLocalFile(content)))
-        self.player.setMedia(QMediaContent(self.content))
-        self.playing_fragment = content
+    def set_content(self, content):
+        self.duration = content.duration
+        self.content = QMediaContent(QUrl.fromLocalFile(content.content))
+        self.player.setMedia(self.content)
+        self.fragment_name = content
 
     def play(self):
         self.player.play()

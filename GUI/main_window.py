@@ -1,16 +1,12 @@
 from PyQt5.QtCore import QSize, Qt, QUrl
 from PyQt5.QtGui import QFont
 from PyQt5.QtWidgets import QPushButton, QHBoxLayout, QWidget, QVBoxLayout, QTableWidget, QMainWindow, QWidgetAction, \
-    QFileDialog, QTableWidgetItem, QInputDialog, QLabel
-from Model import ffmeg_editor
-# from PyQt6.QtWidgets import
+    QFileDialog, QTableWidgetItem, QInputDialog, QLabel, QMessageBox, QDialog, QLineEdit, QDialogButtonBox, QFormLayout
 import threading
 
-
-# from GUI.menubar import create_menubar
 from GUI.jump_slider import QJumpSlider
 from Model.project import Project
-from Model.ffmeg_editor import get_duration, get_duration_with_percent
+
 
 
 
@@ -63,7 +59,7 @@ class MainWindow(QMainWindow):
         rows_count = len(self.session.project.active_fragments)
         self.table.setColumnCount(3)  # Set three columns
         self.table.setRowCount(rows_count)  # and one row
-        self.table.setColumnWidth(2, 180)
+        self.table.setColumnWidth(2, 220)
 
         self.table.setHorizontalHeaderLabels(["Название", "Длина", "Действия"])
         for i in range(rows_count):
@@ -80,7 +76,7 @@ class MainWindow(QMainWindow):
         self.table.setRowHeight(i, 50)
         name = QUrl(self.session.project.active_fragments[i].content).fileName()
         self.table.setItem(i, 0, QTableWidgetItem(name))
-        length = ffmeg_editor.get_duration(self.session.project.active_fragments[i].content)
+        length = self.session.project.active_fragments[i].duration
         self.table.setItem(i, 1, QTableWidgetItem(length))
         tools_panel = QHBoxLayout()
 
@@ -96,9 +92,18 @@ class MainWindow(QMainWindow):
         glue_button = QPushButton('G')
         glue_button.clicked.connect(lambda: self.editor_concat(i))
         tools_panel.addWidget(glue_button)
-        split_button = QPushButton('|')
-        split_button.clicked.connect(lambda: self.session.player_play())
+        split_button = QPushButton('T')
+        split_button.clicked.connect(lambda: self.editor_trim(i))
         tools_panel.addWidget(split_button)
+        clone_button = QPushButton('C')
+        clone_button.clicked.connect(lambda: self.editor_clone(i))
+        tools_panel.addWidget(clone_button)
+        up_button = QPushButton('↑')
+        up_button.clicked.connect(lambda: self.editor_up(i))
+        tools_panel.addWidget(up_button)
+        down_button = QPushButton('↓')
+        down_button.clicked.connect(lambda: self.editor_down(i))
+        tools_panel.addWidget(down_button)
         play_button = QPushButton('P')
         play_button.clicked.connect(lambda: self.editor_add_content(i))
         tools_panel.addWidget(play_button)
@@ -286,31 +291,59 @@ class MainWindow(QMainWindow):
 
     def menu_export_file(self):
         path = QFileDialog.getSaveFileUrl(self, caption="Сохранить как", filter=(".wav"), )[0].path() + ".wav"
-        ffmeg_editor.concat(self.session.project.active_fragments, path)
+        self.session.project.export_as_file(path)
+
 
     def editor_delete_fragment(self, fragment_index):
         self.session.project.delete(fragment_index)
         self.refresh()
 
+    def editor_up(self, fragment_index):
+        self.session.project.up(fragment_index)
+        self.refresh()
+
+    def editor_down(self, fragment_index):
+        self.session.project.down(fragment_index)
+        self.refresh()
+
+    def editor_clone(self, fragment_index):
+        self.session.project.clone(fragment_index)
+        self.refresh()
     def editor_reverse_fragment(self, fragment_index):
         self.session.project.reverse(fragment_index)
         self.refresh()
 
     def editor_change_speed(self, fragment_index):
-        ratio, ok = QInputDialog.getText(self, "Изменение скорости", "Введите коэфицент")
+        ratio, ok = QInputDialog.getDouble(self, "Изменение скорости", "Введите коэфицент")
         if ok:
             self.session.project.change_speed(fragment_index, float(ratio))
             self.refresh()
 
     def editor_add_content(self, fragment_index):
-        self.session.project.add_content(fragment_index)
-        self.audio_name.setText(QUrl(self.session.project.player.playing_fragment).fileName())
-        self.duration_text.setText(f'0:00 / {get_duration(self.session.project.player.playing_fragment)}')
+        self.session.project.player.set_content(self.session.project.active_fragments[fragment_index])
+        self.audio_name.setText(QUrl(self.session.project.player.fragment_name.content).fileName())
+        self.duration_text.setText(f'0:00 / {self.session.project.player.duration}')
         self.refresh()
 
     def editor_concat(self, fragment_index):
-        next_fragment_index = fragment_index + 1
-        self.session.project.concat(fragment_index, next_fragment_index)
+        fragments = [x.content for x in self.session.project.active_fragments]
+        choice, ok = QInputDialog.getItem(self, 'Склеить', 'Выбирите фрагмент, с которым нужно склеить текущий', fragments)
+        if ok:
+            next_fragment_index = fragments.index(choice)
+            if next_fragment_index == fragment_index:
+                msg = QMessageBox()
+                msg.setText("Ошибка")
+                msg.setInformativeText('Нельзя склеить элемент с самим собой')
+                msg.exec_()
+            else:
+                self.session.project.concat(fragment_index, next_fragment_index)
+        self.refresh()
+
+    def editor_trim(self, fragment_index):
+        a = TrimDialog(self)
+        a.exec()
+        results = a.getInputs()
+        self.session.project.trim(fragment_index, results[0], results[1])
         self.refresh()
 
     def menu_new(self):
@@ -326,3 +359,21 @@ class MainWindow(QMainWindow):
     def menu_redo(self):
         self.session.project.redo()
         self.refresh()
+
+class TrimDialog(QDialog):
+    # T0D0 Сделать нормальный ползунок, а не два поля
+    def __init__(self, parent):
+        super().__init__(parent)
+        self.first = QLineEdit(self)
+        self.second = QLineEdit(self)
+        buttonBox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel, self)
+        layout = QFormLayout(self)
+        layout.addRow("Начало", self.first)
+        layout.addRow("Конец", self.second)
+        layout.addWidget(buttonBox)
+
+        buttonBox.accepted.connect(self.accept)
+        buttonBox.rejected.connect(self.reject)
+
+    def getInputs(self):
+        return self.first.text(), self.second.text()

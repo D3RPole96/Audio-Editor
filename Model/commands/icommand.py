@@ -1,8 +1,9 @@
 class Command:
-    def __init__(self, parent, fragment_index):
+    def __init__(self, parent, fragment_index, *args):
         self.fragment_index = fragment_index
         self.parent = parent
-        self.old_file = self.parent.active_fragments[fragment_index]
+        if fragment_index != -1:
+            self.old_file = self.parent.active_fragments[fragment_index]
         self.new_file = self.operate()
         parent.project_files.append(self.new_file)
 

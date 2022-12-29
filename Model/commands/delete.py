@@ -12,6 +12,3 @@ class Delete(Command):
 
     def undo(self):
         self.parent.active_fragments.insert(self.fragment_index, self.old_file)
-
-
-

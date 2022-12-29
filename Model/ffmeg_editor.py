@@ -18,6 +18,15 @@ def concat(fragments, output_path):
         .run()
     )
 
+def trim(path, output_path, start, end):
+    (
+        ffmpeg
+        .input(path)
+        .filter_('atrim', start = start, end = end)
+        .output(output_path)
+        .run()
+    )
+
 
 def reverse(path, output_path):
     (
@@ -51,9 +60,12 @@ def __get_length(file):
 
 
 def get_duration(file):
-    seconds = math.floor(__get_length(file))
+    try:
+        seconds = math.floor(__get_length(file))
 
-    return f'{seconds // 60}:{"0" if seconds % 60 < 10 else ""}{seconds % 60}'
+        return f'{seconds // 60}:{"0" if seconds % 60 < 10 else ""}{seconds % 60}'
+    except:
+        return ''
 
 
 def get_duration_with_percent(file, percent):
