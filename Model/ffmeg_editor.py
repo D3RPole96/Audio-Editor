@@ -35,7 +35,6 @@ def reverse(path, output_path):
         .input(path)
         .filter('areverse')
         .output(output_path)
-        .overwrite_output()
         .run()
     )
 

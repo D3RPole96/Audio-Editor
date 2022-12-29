@@ -7,33 +7,6 @@ class Session:
     def __init__(self):
         self.project = Project("untitled")
 
-    def menu_file_new(self, name):
-        pass
-
-    def menu_file_open(self, path):
-        pass
-
-    def menu_file_save(self):
-        pass
-
-    def menu_file_save_as(self, path):
-        pass
-
-    def menu_file_import(self, path):
-        pass
-
-    def menu_file_export(self, path):
-        pass
-
-    def menu_edit_undo(self):
-        pass
-
-    def menu_edit_redo(self):
-        pass
-
-    def menu_help_about(self):
-        pass
-
     def player_play(self):
         self.project.player.play()
 
