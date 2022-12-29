@@ -8,11 +8,13 @@ class Player:
     def __init__(self):
         self.fragment_name = None
         self.duration = None
+        self.seconds = None
         self.player = QMediaPlayer()
         self.content = QMediaContent()
 
     def set_content(self, content):
         self.duration = content.duration
+        self.seconds = content.seconds
         self.content = QMediaContent(QUrl.fromLocalFile(content.content))
         self.player.setMedia(self.content)
         self.fragment_name = content

@@ -18,11 +18,12 @@ def concat(fragments, output_path):
         .run()
     )
 
+
 def trim(path, output_path, start, end):
     (
         ffmpeg
         .input(path)
-        .filter_('atrim', start = start, end = end)
+        .filter_('atrim', start=start, end=end)
         .output(output_path)
         .run()
     )
@@ -34,6 +35,7 @@ def reverse(path, output_path):
         .input(path)
         .filter('areverse')
         .output(output_path)
+        .overwrite_output()
         .run()
     )
 
@@ -48,7 +50,7 @@ def change_speed(path, output_path, speed_ratio):
     )
 
 
-def __get_length(file):
+def get_length(file):
     cmd = 'ffprobe -i {} -show_entries format=duration -v quiet -of csv="p=0"'.format(file)
     output = subprocess.check_output(
         cmd,
@@ -61,14 +63,12 @@ def __get_length(file):
 
 def get_duration(file):
     try:
-        seconds = math.floor(__get_length(file))
+        seconds = math.floor(get_length(file))
 
-        return f'{seconds // 60}:{"0" if seconds % 60 < 10 else ""}{seconds % 60}'
+        return convert_seconds_to_time(seconds)
     except:
         return ''
 
 
-def get_duration_with_percent(file, percent):
-    seconds = math.floor(__get_length(file) * percent)
-
+def convert_seconds_to_time(seconds):
     return f'{seconds // 60}:{"0" if seconds % 60 < 10 else ""}{seconds % 60}'

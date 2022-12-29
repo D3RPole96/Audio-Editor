@@ -15,10 +15,11 @@ class Reverse(Command):
         path_after = str(fragment_path[:-4] + '-r' + fragment_path[-4:])
         path_before = str(fragment_path[:-6] + fragment_path[-4:])
 
-        if path_after in [x.content for x in self.parent.project_files]:
-            return Fragment(path_after)
-        elif path_before in [x.content for x in self.parent.project_files]:
-            return Fragment(path_before)
+        if self.parent.project_files is not None:
+            if path_after in [x.content for x in self.parent.project_files]:
+                return Fragment(path_after)
+            elif path_before in [x.content for x in self.parent.project_files]:
+                return Fragment(path_before)
         else:
             ffmeg_editor.reverse(fragment_path, path_after)
             fragment = Fragment(path_after)

@@ -13,6 +13,7 @@ class Fragment:
         self.length = 0
         self.content = content
         self.duration = ffmeg_editor.get_duration(content)
+        self.seconds = ffmeg_editor.get_length(content)
 
     def __eq__(self, other):
         return self.id == other.id

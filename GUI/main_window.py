@@ -1,13 +1,17 @@
+import math
+
 from PyQt5.QtCore import QSize, Qt, QUrl
-from PyQt5.QtGui import QFont
+from PyQt5.QtGui import QFont, QKeySequence
 from PyQt5.QtWidgets import QPushButton, QHBoxLayout, QWidget, QVBoxLayout, QTableWidget, QMainWindow, QWidgetAction, \
-    QFileDialog, QTableWidgetItem, QInputDialog, QLabel, QMessageBox, QDialog, QLineEdit, QDialogButtonBox, QFormLayout
+    QFileDialog, QTableWidgetItem, QInputDialog, QLabel, QMessageBox, QDialog, QLineEdit, QDialogButtonBox, \
+    QFormLayout, QShortcut
+from Model import ffmeg_editor
+# from PyQt6.QtWidgets import
 import threading
 
 from GUI.jump_slider import QJumpSlider
+from Model.ffmeg_editor import get_duration, get_length, convert_seconds_to_time
 from Model.project import Project
-
-
 
 
 class MainWindow(QMainWindow):
@@ -21,9 +25,43 @@ class MainWindow(QMainWindow):
         self.duration_text = QLabel()
         self.duration_text.setText('0:00 / 0:00')
         self.duration_text.setFont(QFont('Arial', 24))
+        self.is_paused = True
+        self.seconds = None
 
         self.refresh()
+        self.init_shortcuts()
         self.create_menubar()
+
+    def init_shortcuts(self):
+        self.shortcut_create = QShortcut(QKeySequence('Ctrl+N'), self)
+        self.shortcut_create.activated.connect(self.menu_new)
+
+        self.shortcut_open = QShortcut(QKeySequence('Ctrl+O'), self)
+        self.shortcut_open.activated.connect(self.menu_open_file)
+
+        self.shortcut_save = QShortcut(QKeySequence('Ctrl+S'), self)
+        self.shortcut_save.activated.connect(self.menu_save_file)
+
+        self.shortcut_save_as = QShortcut(QKeySequence('Ctrl+Shift+S'), self)
+        self.shortcut_save_as.activated.connect(self.menu_save_as_file)
+
+        self.shortcut_undo = QShortcut(QKeySequence('Ctrl+Z'), self)
+        self.shortcut_undo.activated.connect(self.menu_undo)
+
+        self.shortcut_redo = QShortcut(QKeySequence('Ctrl+Y'), self)
+        self.shortcut_redo.activated.connect(self.menu_redo)
+
+        self.shortcut_import_media = QShortcut(QKeySequence('Ctrl+I'), self)
+        self.shortcut_import_media.activated.connect(self.menu_import_file)
+
+        self.shortcut_export_media = QShortcut(QKeySequence('Ctrl+E'), self)
+        self.shortcut_export_media.activated.connect(self.menu_export_file)
+
+        self.shortcut_play = QShortcut(Qt.Key_Space, self)
+        self.shortcut_play.activated.connect(self.__play_shortcut)
+
+        self.shortcut_stop = QShortcut(QKeySequence('Shift+Space'), self)
+        self.shortcut_stop.activated.connect(self.__stop)
 
     def refresh(self):
         self.setWindowTitle(self.session.project.name + " - AudioEditor")
@@ -132,7 +170,7 @@ class MainWindow(QMainWindow):
         self.pause_button.clicked.connect(lambda: self.session.player_pause())
         self.stop_button = QPushButton('Stop')
         self.stop_button.setFixedSize(100, 100)
-        self.stop_button.clicked.connect(lambda: self.session.player_stop())
+        self.stop_button.clicked.connect(lambda: self.__stop())
 
         self.main_buttons_layout = QHBoxLayout()
         self.main_buttons_layout.addWidget(self.pause_button)
@@ -143,6 +181,18 @@ class MainWindow(QMainWindow):
 
         self.main_buttons_layout.setAlignment(Qt.AlignmentFlag.AlignTop
                                               | Qt.AlignmentFlag.AlignLeft)
+
+    def __stop(self):
+        self.is_paused = True
+        self.session.player_stop()
+
+    def __play_shortcut(self):
+        if self.is_paused:
+            self.session.player_play()
+        else:
+            self.session.player_pause()
+
+        self.is_paused = not self.is_paused
 
     def __set_main_text(self):
         self.main_text_layout = QVBoxLayout()
@@ -193,15 +243,13 @@ class MainWindow(QMainWindow):
         self.progress_slider_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
     def update_progress(self):
-        threading.Timer(0.001, self.update_progress).start()
+        threading.Timer(0.01, self.update_progress).start()
         progress = self.session.project.player.get_progress()
 
-        # Не убирай коммент, иначе компу смерть
-
-        #if self.session.project.player.playing_fragment is not None:
-        #    self.duration_text.setText(
-        #        self.duration_text.setText(f'{get_duration_with_percent(self.session.project.player.playing_fragment, progress)}'
-        #                                   f' / {get_duration(self.session.project.player.playing_fragment)}'))
+        if self.session.project.player.fragment_name is not None:
+            if self.seconds is not None:
+                self.duration_text.setText(f'{convert_seconds_to_time(math.floor(self.seconds * progress))}'
+                                           f' / {convert_seconds_to_time(math.floor(self.seconds))}')
 
         self.progress_slider.setValue(progress * self.progress_slider.maximum())
 
@@ -284,15 +332,17 @@ class MainWindow(QMainWindow):
 
     def menu_import_file(self):
         path = QFileDialog.getOpenFileUrl(self, caption="Импортировать")
+
         s = path[0].path()[1:]
         if s != '':
             self.session.project.import_file(s)
         self.refresh()
 
     def menu_export_file(self):
-        path = QFileDialog.getSaveFileUrl(self, caption="Сохранить как", filter=(".wav"), )[0].path() + ".wav"
-        self.session.project.export_as_file(path)
-
+        path = QFileDialog.getSaveFileUrl(self, caption="Сохранить как", filter=(".wav"), )[0].path()
+        if path == '':
+            return
+        self.session.project.export_as_file(path + ".wav")
 
     def editor_delete_fragment(self, fragment_index):
         self.session.project.delete(fragment_index)
@@ -309,6 +359,7 @@ class MainWindow(QMainWindow):
     def editor_clone(self, fragment_index):
         self.session.project.clone(fragment_index)
         self.refresh()
+
     def editor_reverse_fragment(self, fragment_index):
         self.session.project.reverse(fragment_index)
         self.refresh()
@@ -322,12 +373,14 @@ class MainWindow(QMainWindow):
     def editor_add_content(self, fragment_index):
         self.session.project.player.set_content(self.session.project.active_fragments[fragment_index])
         self.audio_name.setText(QUrl(self.session.project.player.fragment_name.content).fileName())
+        self.seconds = self.session.project.player.seconds
         self.duration_text.setText(f'0:00 / {self.session.project.player.duration}')
         self.refresh()
 
     def editor_concat(self, fragment_index):
         fragments = [x.content for x in self.session.project.active_fragments]
-        choice, ok = QInputDialog.getItem(self, 'Склеить', 'Выбирите фрагмент, с которым нужно склеить текущий', fragments)
+        choice, ok = QInputDialog.getItem(self, 'Склеить', 'Выбирите фрагмент, с которым нужно склеить текущий',
+                                          fragments)
         if ok:
             next_fragment_index = fragments.index(choice)
             if next_fragment_index == fragment_index:
@@ -343,6 +396,8 @@ class MainWindow(QMainWindow):
         a = TrimDialog(self)
         a.exec()
         results = a.getInputs()
+        if results[0] == '' or results[1] == '':
+            return
         self.session.project.trim(fragment_index, results[0], results[1])
         self.refresh()
 
@@ -359,6 +414,7 @@ class MainWindow(QMainWindow):
     def menu_redo(self):
         self.session.project.redo()
         self.refresh()
+
 
 class TrimDialog(QDialog):
     # T0D0 Сделать нормальный ползунок, а не два поля
